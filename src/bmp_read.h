@@ -9,17 +9,12 @@
  *
  */
 
-#ifndef _BMP_H
-#define _BMP_H
+#ifndef _BMP_READ_H
+#define _BMP_READ_H
 
 #include <stdint.h>
 
-struct _pic_info
-{
-  int width;
-  int height;
-  uint32_t *picture;
-};
+#include "pic_info.h"
 
 struct _bitmap_file
 {
@@ -46,7 +41,7 @@ struct _bitmap_info
   int colors[256];
 };
 
-int bmp_load(FILE *in, struct _pic_info *pic_info);
+int bmp_read(const char *filename, struct _pic_info *pic_info);
 
 #endif
 

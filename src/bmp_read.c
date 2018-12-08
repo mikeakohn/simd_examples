@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bmp.h"
+#include "bmp_read.h"
 
 static int read_int32(FILE *in)
 {
@@ -259,16 +259,26 @@ static void bmp_raw_compressed(FILE *in, uint32_t *picture, struct _bitmap_info 
   }
 }
 
-int bmp_load(FILE *in, struct _pic_info *pic_info)
+int bmp_read(const char *filename, struct _pic_info *pic_info)
 {
+  FILE *in;
   struct _bitmap_file bitmap_file;
   struct _bitmap_info bitmap_info;
   int t;
+
+  in = fopen(filename, "rb");
+
+  if (in == NULL)
+  {
+    printf("Cannot open file %s for reading.\n", filename);
+    return -1;
+  }
 
   bmp_read_file_header(in, &bitmap_file);
 
   if (bitmap_file.type[0] != 'B' || bitmap_file.type[1] != 'M')
   {
+    fclose(in);
     printf("Not a bitmap.\n");
     return -1;
   }
@@ -342,8 +352,9 @@ int bmp_load(FILE *in, struct _pic_info *pic_info)
   else
   {
     printf("This type of compression is not supported at this time.\n");
-    return 0;
   }
+
+  fclose(in);
 
   return 0;
 }
