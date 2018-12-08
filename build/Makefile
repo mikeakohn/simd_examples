@@ -2,6 +2,7 @@
 VPATH=../src
 
 OBJECTS= \
+  bmp.o \
   brightness.o
 
 default: $(OBJECTS)
