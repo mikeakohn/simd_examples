@@ -15,6 +15,8 @@
 #include <string.h>
 
 #include "bmp_read.h"
+#include "bmp_write.h"
+#include "color_to_bw.h"
 #include "pic_info.h"
 
 enum
@@ -72,6 +74,7 @@ static int get_instructions(const char *instructions)
 int main(int argc, char *argv[])
 {
   struct _pic_info pic_info;
+  uint8_t *image_bw;
   const char *filename;
   int function;
   int value;
@@ -97,6 +100,12 @@ int main(int argc, char *argv[])
   instructions = get_instructions(argv[4]);
 
   bmp_read(filename, &pic_info);
+
+  image_bw = (uint8_t *)malloc(pic_info.width * pic_info.height);
+
+  color_to_bw(image_bw, &pic_info);
+
+  bmp_write_bw("out.bmp", image_bw, pic_info.width, pic_info.height);
 
   pic_info_free(&pic_info);
 
