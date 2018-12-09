@@ -1,3 +1,4 @@
 build/*.o
 *.swp
+image_proc
 

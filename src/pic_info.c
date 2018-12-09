@@ -9,12 +9,13 @@
  *
  */
 
-#ifndef _BRIGHTNESS_H
-#define _BRIGHTNESS_H
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <stdint.h>
+#include "pic_info.h"
 
-void brightness(uint8_t *buffer, int length, int value);
-
-#endif
+void pic_info_free(struct _pic_info *pic_info)
+{
+  free(pic_info->picture);
+}
 

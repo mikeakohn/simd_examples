@@ -21,5 +21,7 @@ struct _pic_info
   uint32_t *picture;
 };
 
+void pic_info_free(struct _pic_info *pic_info);
+
 #endif
 
