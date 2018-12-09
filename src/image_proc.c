@@ -87,6 +87,10 @@ static void process_brightness(
   {
     brightness(image_bw, length, value);
   }
+  else if (instructions == INSTRUCTIONS_SSE)
+  {
+    brightness_sse(image_bw, length, value);
+  }
   else
   {
     printf("Error: Unsupported instruction set.\n");

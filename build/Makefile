@@ -7,6 +7,7 @@ OBJECTS= \
   bmp_write.o \
   color_to_bw.o \
   brightness.o \
+  brightness_sse.o \
   pic_info.o
 
 default: $(OBJECTS)
@@ -15,4 +16,7 @@ default: $(OBJECTS)
 
 %.o: %.c %.h
 	$(CC) -c $< -o $*.o $(CFLAGS) -I..
+
+%.o: %.asm
+	nasm -f elf64 -o $*.o $<
 

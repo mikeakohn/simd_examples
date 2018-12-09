@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 void brightness(uint8_t *buffer, int length, int value);
+void brightness_sse(uint8_t *buffer, int length, int value);
 
 #endif
 
