@@ -16,16 +16,17 @@
 
 #include "bmp_read.h"
 #include "bmp_write.h"
+#include "brightness.h"
 #include "color_to_bw.h"
 #include "pic_info.h"
 
 enum
 {
-  INSTRUCTION_UNKNOWN,
-  INSTRUCTION_NORMAL,
-  INSTRUCTION_SSE,
-  INSTRUCTION_AVX,
-  INSTRUCTION_AVX2,
+  INSTRUCTIONS_UNKNOWN,
+  INSTRUCTIONS_NORMAL,
+  INSTRUCTIONS_SSE,
+  INSTRUCTIONS_AVX,
+  INSTRUCTIONS_AVX2,
 };
 
 enum
@@ -53,28 +54,56 @@ static int get_instructions(const char *instructions)
 {
   if (strcmp(instructions, "normal") == 0)
   {
-    return INSTRUCTION_NORMAL;
+    return INSTRUCTIONS_NORMAL;
   }
   else if (strcmp(instructions, "sse") == 0)
   {
-    return INSTRUCTION_SSE;
+    return INSTRUCTIONS_SSE;
   }
   else if (strcmp(instructions, "avx") == 0)
   {
-    return INSTRUCTION_AVX;
+    return INSTRUCTIONS_AVX;
   }
   else if (strcmp(instructions, "avx2") == 0)
   {
-    return INSTRUCTION_AVX2;
+    return INSTRUCTIONS_AVX2;
   }
 
-  return INSTRUCTION_UNKNOWN;
+  return INSTRUCTIONS_UNKNOWN;
+}
+
+static void process_brightness(
+  struct _pic_info *pic_info,
+  int instructions,
+  int value)
+{
+  uint8_t *image_bw;
+  const int length = pic_info->width * pic_info->height;
+
+  image_bw = (uint8_t *)malloc(length);
+  color_to_bw(image_bw, pic_info);
+
+  if (instructions == INSTRUCTIONS_NORMAL)
+  {
+    brightness(image_bw, length, value);
+  }
+  else
+  {
+    printf("Error: Unsupported instruction set.\n");
+  }
+
+  bmp_write_bw("out.bmp", image_bw, pic_info->width, pic_info->height);
+
+  free(image_bw);
+}
+
+static void process_yuv(struct _pic_info *pic_info, int instructions)
+{
 }
 
 int main(int argc, char *argv[])
 {
   struct _pic_info pic_info;
-  uint8_t *image_bw;
   const char *filename;
   int function;
   int value;
@@ -99,13 +128,28 @@ int main(int argc, char *argv[])
   value = atoi(argv[3]);
   instructions = get_instructions(argv[4]);
 
+  if (function == FUNCTION_UNKNOWN)
+  {
+    printf("Error: %s is unknown\n", argv[2]);
+    exit(1);
+  }
+
+  if (instructions == INSTRUCTIONS_UNKNOWN)
+  {
+    printf("Error: %s is unknown\n", argv[4]);
+    exit(1);
+  }
+
   bmp_read(filename, &pic_info);
 
-  image_bw = (uint8_t *)malloc(pic_info.width * pic_info.height);
-
-  color_to_bw(image_bw, &pic_info);
-
-  bmp_write_bw("out.bmp", image_bw, pic_info.width, pic_info.height);
+  if (function == FUNCTION_BRIGHTNESS)
+  {
+    process_brightness(&pic_info, instructions, value);
+  }
+  else if (function == FUNCTION_YUV)
+  {
+    process_yuv(&pic_info, instructions);
+  }
 
   pic_info_free(&pic_info);
 
