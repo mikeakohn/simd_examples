@@ -8,7 +8,8 @@ OBJECTS= \
   color_to_bw.o \
   brightness.o \
   brightness_sse.o \
-  pic_info.o
+  pic_info.o \
+  yuv422.o
 
 default: $(OBJECTS)
 	$(CC) -o ../image_proc ../src/image_proc.c $(CFLAGS) \

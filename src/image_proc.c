@@ -19,6 +19,7 @@
 #include "brightness.h"
 #include "color_to_bw.h"
 #include "pic_info.h"
+#include "yuv422.h"
 
 enum
 {
@@ -101,8 +102,24 @@ static void process_brightness(
   free(image_bw);
 }
 
-static void process_yuv(struct _pic_info *pic_info, int instructions)
+static void process_yuv(uint8_t *image_yuv, int instructions, int width, int height)
 {
+  uint8_t *image_rgb24;
+
+  image_rgb24 = (uint8_t *)malloc(width * height * 3);
+
+  if (instructions == INSTRUCTIONS_NORMAL)
+  {
+    yuv422_to_rgb24_int(image_yuv, image_rgb24, width, height);
+  }
+  else
+  {
+    printf("Error: Unsupported instruction set.\n");
+  }
+
+  bmp_write_rgb24("out.bmp", image_rgb24, width, height);
+
+  free(image_rgb24);
 }
 
 int main(int argc, char *argv[])
@@ -118,12 +135,13 @@ int main(int argc, char *argv[])
   if (argc != 5)
   {
     printf("Usage: %s <filename> <brightness/yuv> <value> <normal/sse/avx/avx2>\n", argv[0]);
-    printf("   brightness: Convert image to bw and change brightness\n");
-    printf("          yuv: Convert yuv422 to rgb (value is ignored)\n");
-    printf("       normal: Use straight C.\n");
-    printf("          sse: Use SSE instructions\n");
-    printf("          avx: Use AVX instructions\n");
-    printf("         avx2: Use AVX2 instructions\n");
+    printf(
+      "   brightness: Convert .bmp image to bw and change brightness\n"
+      "          yuv: Convert yuv422 to rgb (value is image width)\n"
+      "       normal: Use straight C.\n"
+      "          sse: Use SSE instructions\n"
+      "          avx: Use AVX instructions\n"
+      "         avx2: Use AVX2 instructions\n");
     exit(0);
   }
 
@@ -144,18 +162,32 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  bmp_read(filename, &pic_info);
-
   if (function == FUNCTION_BRIGHTNESS)
   {
+    bmp_read(filename, &pic_info);
+
     process_brightness(&pic_info, instructions, value);
+
+    pic_info_free(&pic_info);
   }
   else if (function == FUNCTION_YUV)
   {
-    process_yuv(&pic_info, instructions);
-  }
+    uint8_t *image_yuv422;
+    int length;
+    int width, height;
 
-  pic_info_free(&pic_info);
+    length = yuv422_read(filename, &image_yuv422);
+printf("length=%d\n", length);
+
+    if (length != 0)
+    {
+      width = value;
+      height = (length / 2) / width;
+
+      process_yuv(image_yuv422, instructions, width, height);
+      free(image_yuv422);
+    }
+  }
 
   return 0;
 }

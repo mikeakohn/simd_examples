@@ -19,6 +19,7 @@ brightness_sse:
   neg dl
 brightness_sse_not_neg:
 
+  ;; Create a 16 byte vector setting each byte to value.
   mov dh, dl
   pinsrw xmm1, dx, 0
   pinsrw xmm1, dx, 1
@@ -32,6 +33,7 @@ brightness_sse_not_neg:
   test edx, edx
   jg brightness_sse_pos_loop
 
+  ;; Iterate over image 16 pixels at a time and sub value from each pixel.
 brightness_sse_neg_loop:
   movups xmm0, [rdi]
   psubusb xmm0, xmm1
@@ -41,6 +43,7 @@ brightness_sse_neg_loop:
   jnz brightness_sse_neg_loop
   ret
 
+  ;; Iterate over image 16 pixels at a time and add value to each pixel.
 brightness_sse_pos_loop:
   movups xmm0, [rdi]
   paddusb xmm0, xmm1
