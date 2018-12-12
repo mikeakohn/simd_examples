@@ -10,9 +10,11 @@
 
 BITS 64
 
+global _brightness_sse
 global brightness_sse
 
 ;void brightness_sse(uint8_t *buffer, int length, int value)
+_brightness_sse:
 brightness_sse:
   test edx, edx
   jg brightness_sse_not_neg
