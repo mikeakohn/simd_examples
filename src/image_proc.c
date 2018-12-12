@@ -102,7 +102,7 @@ static void process_brightness(
   free(image_bw);
 }
 
-static void process_yuv(uint8_t *image_yuv, int instructions, int width, int height)
+static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int height)
 {
   uint8_t *image_rgb24;
 
@@ -110,7 +110,7 @@ static void process_yuv(uint8_t *image_yuv, int instructions, int width, int hei
 
   if (instructions == INSTRUCTIONS_NORMAL)
   {
-    yuv422_to_rgb24_int(image_yuv, image_rgb24, width, height);
+    yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
   }
   else
   {
@@ -177,7 +177,6 @@ int main(int argc, char *argv[])
     int width, height;
 
     length = yuv422_read(filename, &image_yuv422);
-printf("length=%d\n", length);
 
     if (length != 0)
     {

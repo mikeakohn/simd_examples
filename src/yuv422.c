@@ -50,8 +50,8 @@ int yuv422_read(const char *filename, uint8_t **image_yuv422)
 }
 
 void yuv422_to_rgb24_float(
-  uint8_t *yuv_buffer,
   uint8_t *rgb_buffer,
+  uint8_t *yuv_buffer,
   int width,
   int height)
 {
@@ -127,8 +127,8 @@ void yuv422_to_rgb24_float(
 }
 
 void yuv422_to_rgb24_int(
-  uint8_t *yuv_buffer,
   uint8_t *rgb_buffer,
+  uint8_t *yuv_buffer,
   int width,
   int height)
 {

@@ -16,6 +16,7 @@
 
 void brightness(uint8_t *buffer, int length, int value);
 void brightness_sse(uint8_t *buffer, int length, int value);
+void brightness_avx2(uint8_t *buffer, int length, int value);
 
 #endif
 
