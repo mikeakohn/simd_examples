@@ -10,9 +10,11 @@
 
 BITS 64
 
+global _brightness_avx2
 global brightness_avx2
 
 ;void brightness_avx2(uint8_t *buffer, int length, int value)
+_brightness_avx2:
 brightness_avx2:
   test edx, edx
   jg brightness_sse_not_neg
@@ -33,6 +35,7 @@ brightness_sse_not_neg:
   vpinsrd xmm1, edx, 5
   vpinsrd xmm1, edx, 6
   vpinsrd xmm1, edx, 7
+  vinsertf128 ymm1, ymm1, xmm1, 1
 
   test eax, eax
   jg brightness_sse_pos_loop
