@@ -92,6 +92,10 @@ static void process_brightness(
   {
     brightness_sse(image_bw, length, value);
   }
+  else if (instructions == INSTRUCTIONS_AVX2)
+  {
+    brightness_avx2(image_bw, length, value);
+  }
   else
   {
     printf("Error: Unsupported instruction set.\n");
