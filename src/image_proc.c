@@ -29,9 +29,8 @@ enum
   INSTRUCTIONS_UNKNOWN,
   INSTRUCTIONS_NORMAL,
   INSTRUCTIONS_SSE,
-  INSTRUCTIONS_SSE_FLOAT,
   INSTRUCTIONS_AVX,
-  INSTRUCTIONS_AVX2,
+  INSTRUCTIONS_AVX512,
 };
 
 enum
@@ -39,6 +38,13 @@ enum
   FUNCTION_UNKNOWN,
   FUNCTION_BRIGHTNESS,
   FUNCTION_YUV,
+};
+
+enum
+{
+  TYPE_UNKNOWN,
+  TYPE_FLOAT,
+  TYPE_INT,
 };
 
 static int get_function(const char *function)
@@ -65,20 +71,26 @@ static int get_instructions(const char *instructions)
   {
     return INSTRUCTIONS_SSE;
   }
-  else if (strcmp(instructions, "sse_float") == 0)
-  {
-    return INSTRUCTIONS_SSE_FLOAT;
-  }
   else if (strcmp(instructions, "avx") == 0)
   {
     return INSTRUCTIONS_AVX;
   }
-  else if (strcmp(instructions, "avx2") == 0)
-  {
-    return INSTRUCTIONS_AVX2;
-  }
 
   return INSTRUCTIONS_UNKNOWN;
+}
+
+static int get_type(const char *type)
+{
+  if (strcmp(type, "int") == 0)
+  {
+    return TYPE_INT;
+  }
+  else if (strcmp(type, "float") == 0)
+  {
+    return TYPE_FLOAT;
+  }
+
+  return TYPE_UNKNOWN;
 }
 
 static void process_brightness(
@@ -92,6 +104,8 @@ static void process_brightness(
   image_bw = (uint8_t *)malloc(length);
   color_to_bw(image_bw, pic_info);
 
+TIMER_START
+
   if (instructions == INSTRUCTIONS_NORMAL)
   {
     brightness(image_bw, length, value);
@@ -100,7 +114,7 @@ static void process_brightness(
   {
     brightness_sse(image_bw, length, value);
   }
-  else if (instructions == INSTRUCTIONS_AVX2)
+  else if (instructions == INSTRUCTIONS_AVX)
   {
     brightness_avx2(image_bw, length, value);
   }
@@ -109,12 +123,14 @@ static void process_brightness(
     printf("Error: Unsupported instruction set.\n");
   }
 
+TIMER_STOP
+
   bmp_write_bw("out.bmp", image_bw, pic_info->width, pic_info->height);
 
   free(image_bw);
 }
 
-static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int height)
+static void process_yuv(uint8_t *image_yuv422, int instructions, int type, int width, int height)
 {
   uint8_t *image_rgb24;
 
@@ -124,15 +140,25 @@ TIMER_START
 
   if (instructions == INSTRUCTIONS_NORMAL)
   {
-    yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
+    if (type == TYPE_INT)
+    {
+      yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
+    }
+    else
+    {
+      yuv422_to_rgb24_float(image_rgb24, image_yuv422, width, height);
+    }
   }
   else if (instructions == INSTRUCTIONS_SSE)
   {
-    yuv422_to_rgb24_int_sse(image_rgb24, image_yuv422, width, height);
-  }
-  else if (instructions == INSTRUCTIONS_SSE_FLOAT)
-  {
-    yuv422_to_rgb24_float_sse(image_rgb24, image_yuv422, width, height);
+    if (type == TYPE_INT)
+    {
+      yuv422_to_rgb24_int_sse(image_rgb24, image_yuv422, width, height);
+    }
+    else
+    {
+      yuv422_to_rgb24_float_sse(image_rgb24, image_yuv422, width, height);
+    }
   }
   else
   {
@@ -193,22 +219,23 @@ int main(int argc, char *argv[])
   int function;
   int value;
   int instructions;
+  int type;
 
   memset(&pic_info, 0, sizeof(pic_info));
 
   //test();
 
-  if (argc != 5)
+  if (argc != 6)
   {
-    printf("Usage: %s <filename> <brightness/yuv> <value> <normal/sse/avx/avx2>\n", argv[0]);
+    printf("Usage: %s <filename> <brightness/yuv> <value> <normal/sse/avx> <float/int>\n", argv[0]);
     printf(
-      "   brightness: Convert .bmp image to bw and change brightness\n"
-      "          yuv: Convert yuv422 to rgb (value is image width)\n"
+      "   brightness: Convert .bmp image to bw and change brightness.\n"
+      "          yuv: Convert yuv422 to rgb (value is image width).\n"
       "       normal: Use straight C.\n"
-      "          sse: Use SSE instructions\n"
-      "    sse_float: Use SSE with float instructions\n"
-      "          avx: Use AVX instructions\n"
-      "         avx2: Use AVX2 instructions\n");
+      "          sse: Use SSE/SSE2/SSE3/SSE4 instructions.\n"
+      "          avx: Use AVX/AVX2 instructions.\n"
+      "          int: Use all integer instructions.\n"
+      "        float: Use float instructions for main parts of code.\n");
     exit(0);
   }
 
@@ -216,21 +243,34 @@ int main(int argc, char *argv[])
   function = get_function(argv[2]);
   value = atoi(argv[3]);
   instructions = get_instructions(argv[4]);
+  type = get_type(argv[5]);
 
   if (function == FUNCTION_UNKNOWN)
   {
-    printf("Error: %s is unknown\n", argv[2]);
+    printf("Error: function %s is unknown\n", argv[2]);
     exit(1);
   }
 
   if (instructions == INSTRUCTIONS_UNKNOWN)
   {
-    printf("Error: %s is unknown\n", argv[4]);
+    printf("Error: instruction set %s is unknown\n", argv[4]);
+    exit(1);
+  }
+
+  if (type == TYPE_UNKNOWN)
+  {
+    printf("Error: Type %s is unknown\n", argv[5]);
     exit(1);
   }
 
   if (function == FUNCTION_BRIGHTNESS)
   {
+    if (type == TYPE_FLOAT)
+    {
+      printf("Float isn't valid for brightness.\n");
+      exit(1);
+    }
+
     bmp_read(filename, &pic_info);
 
     process_brightness(&pic_info, instructions, value);
@@ -250,7 +290,7 @@ int main(int argc, char *argv[])
       width = value;
       height = (length / 2) / width;
 
-      process_yuv(image_yuv422, instructions, width, height);
+      process_yuv(image_yuv422, instructions, type, width, height);
       free(image_yuv422);
     }
   }
