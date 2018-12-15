@@ -21,20 +21,13 @@ brightness_avx2:
   neg dl
 brightness_sse_not_neg:
 
-  ;; Create a 16 byte vector setting each byte to value.
+  ;; Create a 16 byte vector setting each byte to value.  Inserts a
+  ;; dword of vvvv into vector element 0 and then uses shuffle dword
+  ;; to copy that value to the other vector dword elements.
   mov dh, dl
-  mov eax, edx
-  sal edx, 16
-  or edx, eax
-
-  vpinsrd xmm1, edx, 0
-  vpinsrd xmm1, edx, 1
-  vpinsrd xmm1, edx, 2
-  vpinsrd xmm1, edx, 3
-  vpinsrd xmm1, edx, 4
-  vpinsrd xmm1, edx, 5
-  vpinsrd xmm1, edx, 6
-  vpinsrd xmm1, edx, 7
+  pinsrw xmm1, dx, 0
+  pinsrw xmm1, dx, 1
+  pshufd xmm1, xmm1, 0
   vinsertf128 ymm1, ymm1, xmm1, 1
 
   test eax, eax
