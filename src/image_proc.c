@@ -22,7 +22,7 @@
 #include "timer.h"
 #include "yuv422.h"
 
-int test_sse(void *dest, void *src);
+//int test_sse(void *dest, void *src);
 
 enum
 {
@@ -172,6 +172,7 @@ TIMER_STOP
   free(image_rgb24);
 }
 
+#if 0
 int test()
 {
   int s[4];
@@ -211,6 +212,7 @@ int test()
 
   return 0;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
