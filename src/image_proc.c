@@ -21,11 +21,14 @@
 #include "pic_info.h"
 #include "yuv422.h"
 
+int test_sse(void *dest, void *src);
+
 enum
 {
   INSTRUCTIONS_UNKNOWN,
   INSTRUCTIONS_NORMAL,
   INSTRUCTIONS_SSE,
+  INSTRUCTIONS_SSE_FLOAT,
   INSTRUCTIONS_AVX,
   INSTRUCTIONS_AVX2,
 };
@@ -60,6 +63,10 @@ static int get_instructions(const char *instructions)
   else if (strcmp(instructions, "sse") == 0)
   {
     return INSTRUCTIONS_SSE;
+  }
+  else if (strcmp(instructions, "sse_float") == 0)
+  {
+    return INSTRUCTIONS_SSE_FLOAT;
   }
   else if (strcmp(instructions, "avx") == 0)
   {
@@ -116,6 +123,14 @@ static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int 
   {
     yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
   }
+  else if (instructions == INSTRUCTIONS_SSE)
+  {
+    yuv422_to_rgb24_int_sse(image_rgb24, image_yuv422, width, height);
+  }
+  else if (instructions == INSTRUCTIONS_SSE_FLOAT)
+  {
+    yuv422_to_rgb24_float_sse(image_rgb24, image_yuv422, width, height);
+  }
   else
   {
     printf("Error: Unsupported instruction set.\n");
@@ -124,6 +139,46 @@ static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int 
   bmp_write_rgb24("out.bmp", image_rgb24, width, height);
 
   free(image_rgb24);
+}
+
+int test()
+{
+  int s[4];
+  int d[4];
+
+  s[0] = 1;
+  s[1] = 2;
+  s[2] = 3;
+  s[3] = 4;
+
+  d[0] = 5;
+  d[1] = 6;
+  d[2] = 7;
+  d[3] = 8;
+
+  test_sse(d, s);
+
+#if 0
+  float k = -0.39466;
+
+  printf("%08x\n", *((uint32_t *)((void *)&k)));
+#endif
+
+  printf("test: %08x %08x %08x %08x\n",
+    d[0],
+    d[1],
+    d[2],
+    d[3]);
+
+  float *f = (float *)d;
+
+  printf("test: %f %f %f %f\n",
+    f[0],
+    f[1],
+    f[2],
+    f[3]);
+
+  return 0;
 }
 
 int main(int argc, char *argv[])
@@ -136,6 +191,8 @@ int main(int argc, char *argv[])
 
   memset(&pic_info, 0, sizeof(pic_info));
 
+  //test();
+
   if (argc != 5)
   {
     printf("Usage: %s <filename> <brightness/yuv> <value> <normal/sse/avx/avx2>\n", argv[0]);
@@ -144,6 +201,7 @@ int main(int argc, char *argv[])
       "          yuv: Convert yuv422 to rgb (value is image width)\n"
       "       normal: Use straight C.\n"
       "          sse: Use SSE instructions\n"
+      "    sse_float: Use SSE with float instructions\n"
       "          avx: Use AVX instructions\n"
       "         avx2: Use AVX2 instructions\n");
     exit(0);
