@@ -18,6 +18,7 @@ OBJECTS= \
   brightness_sse.o \
   brightness_avx2.o \
   pic_info.o \
+  timer.o \
   yuv422.o \
   yuv422_sse.o
 

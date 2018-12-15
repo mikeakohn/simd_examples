@@ -19,6 +19,7 @@
 #include "brightness.h"
 #include "color_to_bw.h"
 #include "pic_info.h"
+#include "timer.h"
 #include "yuv422.h"
 
 int test_sse(void *dest, void *src);
@@ -119,6 +120,8 @@ static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int 
 
   image_rgb24 = (uint8_t *)malloc(width * height * 3);
 
+TIMER_START
+
   if (instructions == INSTRUCTIONS_NORMAL)
   {
     yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
@@ -135,6 +138,8 @@ static void process_yuv(uint8_t *image_yuv422, int instructions, int width, int 
   {
     printf("Error: Unsupported instruction set.\n");
   }
+
+TIMER_STOP
 
   bmp_write_rgb24("out.bmp", image_rgb24, width, height);
 
