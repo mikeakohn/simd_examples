@@ -21,16 +21,13 @@ brightness_sse:
   neg dl
 brightness_sse_not_neg:
 
-  ;; Create a 16 byte vector setting each byte to value.
+  ;; Create a 16 byte vector setting each byte to value.  Inserts a
+  ;; dword of vvvv into vector element 0 and then uses shuffle dword
+  ;; to copy that value to the other vector dword elements.
   mov dh, dl
   pinsrw xmm1, dx, 0
   pinsrw xmm1, dx, 1
-  pinsrw xmm1, dx, 2
-  pinsrw xmm1, dx, 3
-  pinsrw xmm1, dx, 4
-  pinsrw xmm1, dx, 5
-  pinsrw xmm1, dx, 6
-  pinsrw xmm1, dx, 7
+  pshufd xmm1, xmm1, 0
 
   test edx, edx
   jg brightness_sse_pos_loop
