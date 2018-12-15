@@ -68,7 +68,7 @@ yuv422_to_rgb24_float_sse:
 
   mov eax, 255
   movd xmm15, eax
-  pshufd xmm15, xmm1, 0  ; xmm15 = [ 255, 255, 255, 255 ]
+  pshufd xmm15, xmm15, 0 ; xmm15 = [ 255, 255, 255, 255 ]
 
   mov eax, 0x3f91e5f3    ; 1.13983
   movd xmm8, eax
@@ -95,27 +95,29 @@ yuv422_to_rgb24_float_sse_loop:
   punpcklbw xmm2, xmm0
   punpcklwd xmm2, xmm0
 
-  ;; Load U0U1 into xmm3 [ U0, U0, U1, U1 ]
+  ;; Load U0U1 into xmm3 [ U0, U0, U1, U1 ].
   mov ax, [rdx]
   pinsrw xmm3, ax, 0
   punpcklbw xmm3, xmm0
   punpcklwd xmm3, xmm0
   pshufd xmm3, xmm3, 0x50
 
-  ;; Load V0V1 into xmm4 [ V0, V0, V1, V1 ]
+  ;; Load V0V1 into xmm4 [ V0, V0, V1, V1 ].
   mov ax, [r8]
   pinsrw xmm4, ax, 0
   punpcklbw xmm4, xmm0
   punpcklwd xmm4, xmm0
   pshufd xmm4, xmm4, 0x50
 
+  ;; [ U, U, U, U ] - [ 128, 128, 128, 128 ]
+  ;; [ V, V, V, V ] - [ 128, 128, 128, 128 ]
+  psubd xmm3, xmm1
+  psubd xmm4, xmm1
+
   ;; Convert to float.
   cvtdq2ps xmm2, xmm2    ; xmm2 = (float)vecy
   cvtdq2ps xmm3, xmm3    ; xmm3 = (float)vecu
   cvtdq2ps xmm4, xmm4    ; xmm4 = (float)vecv
-
-  ;; [ Y, Y, Y, Y ] - [ 128, 128, 128, 128 ]
-  psubd xmm2, xmm1
 
   ; xmm5 = uv1 = -(0.39466 * (float)u) - (0.58060*(float)v);
   movaps xmm5, xmm3
