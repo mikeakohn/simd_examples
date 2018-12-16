@@ -132,9 +132,9 @@ TIMER_STOP
 
 static void process_yuv(uint8_t *image_yuv422, int instructions, int type, int width, int height)
 {
-  uint8_t *image_rgb24;
+  uint32_t *image_rgb32;
 
-  image_rgb24 = (uint8_t *)malloc(width * height * 3);
+  image_rgb32 = (uint32_t *)malloc(width * height * sizeof(uint32_t));
 
 TIMER_START
 
@@ -142,22 +142,22 @@ TIMER_START
   {
     if (type == TYPE_INT)
     {
-      yuv422_to_rgb24_int(image_rgb24, image_yuv422, width, height);
+      yuv422_to_rgb32_int(image_rgb32, image_yuv422, width, height);
     }
     else
     {
-      yuv422_to_rgb24_float(image_rgb24, image_yuv422, width, height);
+      yuv422_to_rgb32_float(image_rgb32, image_yuv422, width, height);
     }
   }
   else if (instructions == INSTRUCTIONS_SSE)
   {
     if (type == TYPE_INT)
     {
-      yuv422_to_rgb24_int_sse(image_rgb24, image_yuv422, width, height);
+      yuv422_to_rgb32_int_sse(image_rgb32, image_yuv422, width, height);
     }
     else
     {
-      yuv422_to_rgb24_float_sse(image_rgb24, image_yuv422, width, height);
+      yuv422_to_rgb32_float_sse(image_rgb32, image_yuv422, width, height);
     }
   }
   else
@@ -167,9 +167,9 @@ TIMER_START
 
 TIMER_STOP
 
-  bmp_write_rgb24("out.bmp", image_rgb24, width, height);
+  bmp_write_rgb32("out.bmp", image_rgb32, width, height);
 
-  free(image_rgb24);
+  free(image_rgb32);
 }
 
 #if 0

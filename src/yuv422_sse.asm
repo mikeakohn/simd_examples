@@ -10,10 +10,10 @@
 
 BITS 64
 
-global _yuv422_to_rgb24_float_sse
-global yuv422_to_rgb24_float_sse
-global _yuv422_to_rgb24_int_sse
-global yuv422_to_rgb24_int_sse
+global _yuv422_to_rgb32_float_sse
+global yuv422_to_rgb32_float_sse
+global _yuv422_to_rgb32_int_sse
+global yuv422_to_rgb32_int_sse
 global test_sse
 
 ;default rel
@@ -40,10 +40,10 @@ global test_sse
 ;    uv1 = -(0.39466 * (float)u) - (0.58060*(float)v);
 ;    u1 = (2.03211 * (float)u);
 
-;void yuv422_to_rgb24_float_sse(uint8_t *image_rgb24, uint8_t *image_yuv422, int width, int height)
-_yuv422_to_rgb24_float_sse:
-yuv422_to_rgb24_float_sse:
-  ;; rdi = image_rgb24
+;void yuv422_to_rgb32_float_sse(uint8_t *image_rgb32, uint8_t *image_yuv422, int width, int height)
+_yuv422_to_rgb32_float_sse:
+yuv422_to_rgb32_float_sse:
+  ;; rdi = image_rgb32
   ;; rsi = image_yuv422
   ;; rdx = width
   ;; rcx = height
@@ -86,7 +86,7 @@ yuv422_to_rgb24_float_sse:
   movd xmm11, eax
   pshufd xmm11, xmm11, 0 ; xmm11 = [ 2.03211, 2.03211, 2.03211, 2.03211 ]
 
-yuv422_to_rgb24_float_sse_loop:
+yuv422_to_rgb32_float_sse_loop:
 
   ;; Load YYYY data from memory.
   movss xmm2, [rsi]
@@ -153,46 +153,27 @@ yuv422_to_rgb24_float_sse_loop:
   pminsd xmm5, xmm15       ; if (g > 255) { g = 255; }
   pminsd xmm3, xmm15       ; if (b > 255) { b = 255; }
 
-  pextrb eax, xmm4, 0
-  mov [rdi+0], al
-  pextrb eax, xmm5, 0
-  mov [rdi+1], al
-  pextrb eax, xmm3, 0
-  mov [rdi+2], al
+  pslld xmm5, 8
+  pslld xmm4, 16
 
-  pextrb eax, xmm4, 4
-  mov [rdi+3], al
-  pextrb eax, xmm5, 4
-  mov [rdi+4], al
-  pextrb eax, xmm3, 4
-  mov [rdi+5], al
+  por xmm4, xmm5
+  por xmm4, xmm3
 
-  pextrb eax, xmm4, 8
-  mov [rdi+6], al
-  pextrb eax, xmm5, 8
-  mov [rdi+7], al
-  pextrb eax, xmm3, 8
-  mov [rdi+8], al
+  ;movups [rdi], xmm4
+  movntps [rdi], xmm4
 
-  pextrb eax, xmm4, 12
-  mov [rdi+9], al
-  pextrb eax, xmm5, 12
-  mov [rdi+10], al
-  pextrb eax, xmm3, 12
-  mov [rdi+11], al
-
-  add rdi, 12
+  add rdi, 16
   add rsi, 4
   add rdx, 2
   add r8, 2
   sub ecx, 4
-  jnz yuv422_to_rgb24_float_sse_loop
+  jnz yuv422_to_rgb32_float_sse_loop
   ret
 
-;void yuv422_to_rgb24_int_sse(uint8_t *image_rgb24, uint8_t *image_yuv422, int width, int height)
-_yuv422_to_rgb24_int_sse:
-yuv422_to_rgb24_int_sse:
-  ;; rdi = image_rgb24
+;void yuv422_to_rgb32_int_sse(uint8_t *image_rgb32, uint8_t *image_yuv422, int width, int height)
+_yuv422_to_rgb32_int_sse:
+yuv422_to_rgb32_int_sse:
+  ;; rdi = image_rgb32
   ;; rsi = image_yuv422
   ;; rdx = width
   ;; rcx = height
@@ -235,7 +216,7 @@ yuv422_to_rgb24_int_sse:
   movd xmm11, eax
   pshufd xmm11, xmm11, 0 ; xmm11 = [ 8324, 8324, 8324, 8324 ]
 
-yuv422_to_rgb24_int_sse_loop:
+yuv422_to_rgb32_int_sse_loop:
 
   ;; Load YYYY data from memory.
   movss xmm2, [rsi]
@@ -299,40 +280,21 @@ yuv422_to_rgb24_int_sse_loop:
   pminsd xmm5, xmm15       ; if (g > 255) { g = 255; }
   pminsd xmm3, xmm15       ; if (b > 255) { b = 255; }
 
-  pextrb eax, xmm4, 0
-  mov [rdi+0], al
-  pextrb eax, xmm5, 0
-  mov [rdi+1], al
-  pextrb eax, xmm3, 0
-  mov [rdi+2], al
+  pslld xmm5, 8
+  pslld xmm4, 16
 
-  pextrb eax, xmm4, 4
-  mov [rdi+3], al
-  pextrb eax, xmm5, 4
-  mov [rdi+4], al
-  pextrb eax, xmm3, 4
-  mov [rdi+5], al
+  por xmm4, xmm5
+  por xmm4, xmm3
 
-  pextrb eax, xmm4, 8
-  mov [rdi+6], al
-  pextrb eax, xmm5, 8
-  mov [rdi+7], al
-  pextrb eax, xmm3, 8
-  mov [rdi+8], al
+  ;movups [rdi], xmm4
+  movntps [rdi], xmm4
 
-  pextrb eax, xmm4, 12
-  mov [rdi+9], al
-  pextrb eax, xmm5, 12
-  mov [rdi+10], al
-  pextrb eax, xmm3, 12
-  mov [rdi+11], al
-
-  add rdi, 12
+  add rdi, 16
   add rsi, 4
   add rdx, 2
   add r8, 2
   sub ecx, 4
-  jnz yuv422_to_rgb24_int_sse_loop
+  jnz yuv422_to_rgb32_int_sse_loop
   ret
 
 test_sse:

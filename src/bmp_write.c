@@ -233,3 +233,44 @@ int bmp_write_rgb24(const char *filename, uint8_t *image_rgb24, int width, int h
   return 0;
 }
 
+int bmp_write_rgb32(const char *filename, uint32_t *image_rgb32, int width, int height)
+{
+  struct _bmp bmp;
+  int x, y;
+
+  bmp.out = fopen(filename, "wb");
+
+  if (bmp.out == NULL)
+  {
+    printf("Cannot open file %s for writing.\n", filename);
+    return -1;
+  }
+
+  write_bmp_header(&bmp, width, height);
+
+  for (y = height - 1; y >= 0; y--)
+  {
+    int ptr = y * width;
+
+    for (x = 0; x < width; x++)
+    {
+      const uint32_t pixel = image_rgb32[ptr++];
+
+      write_bmp_pixel(&bmp, (pixel >> 16) & 0xff,
+                            (pixel >> 8) & 0xff,
+                             pixel & 0xff);
+#if 0
+      write_bmp_pixel(&bmp, pixel & 0xff,
+                            (pixel >> 8) & 0xff,
+                            (pixel >> 16) & 0xff);
+#endif
+    }
+  }
+
+  write_bmp_footer(&bmp);
+
+  fclose(bmp.out);
+
+  return 0;
+}
+

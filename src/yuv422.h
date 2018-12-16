@@ -7,7 +7,7 @@
  *
  * Copyright 2007-2018 by Michael Kohn
  *
- * YUV422 is a planer format where the yuv_buffer is formatted as:
+ * YUV422 is a planer format where the image_yuv422 is formatted as:
  *
  * Y bytes (length is width * height)
  * U bytes (length is width * height / 2)
@@ -25,27 +25,27 @@
 
 int yuv422_read(const char *filename, uint8_t **image_yuv);
 
-void yuv422_to_rgb24_float(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_float(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height);
 
-void yuv422_to_rgb24_int(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_int(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height);
 
-void yuv422_to_rgb24_float_sse(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_float_sse(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height);
 
-void yuv422_to_rgb24_int_sse(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_int_sse(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height);
 

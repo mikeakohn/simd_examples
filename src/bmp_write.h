@@ -19,6 +19,7 @@
 int bmp_write(const char *filename, struct _pic_info *pic_info);
 int bmp_write_bw(const char *filename, uint8_t *image_bw, int width, int height);
 int bmp_write_rgb24(const char *filename, uint8_t *image_rgb24, int width, int height);
+int bmp_write_rgb32(const char *filename, uint32_t *image_rgb32, int width, int height);
 
 #endif
 

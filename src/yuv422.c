@@ -7,7 +7,7 @@
  *
  * Copyright 2007-2018 by Michael Kohn
  *
- * YUV422 is a planer format where the yuv_buffer is formatted as:
+ * YUV422 is a planer format where the image_yuv422 is formatted as:
  *
  * Y bytes (length is width * height)
  * U bytes (length is width * height / 2)
@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+#include "yuv422.h"
 
 int yuv422_read(const char *filename, uint8_t **image_yuv422)
 {
@@ -49,9 +51,9 @@ int yuv422_read(const char *filename, uint8_t **image_yuv422)
   return length;
 }
 
-void yuv422_to_rgb24_float(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_float(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height)
 {
@@ -64,7 +66,7 @@ void yuv422_to_rgb24_float(
 
   length = width * height;
 
-  u_buffer = yuv_buffer + length;
+  u_buffer = image_yuv422 + length;
   length = length / 2;
   v_buffer = u_buffer + length;
 
@@ -85,9 +87,9 @@ void yuv422_to_rgb24_float(
 
     // Run even pixel through formula.
 
-    r = yuv_buffer[y_ptr] + v1;
-    g = yuv_buffer[y_ptr] + uv1;
-    b = yuv_buffer[y_ptr] + u1;
+    r = image_yuv422[y_ptr] + v1;
+    g = image_yuv422[y_ptr] + uv1;
+    b = image_yuv422[y_ptr] + u1;
 
     // Saturate pixels to a value between 0 and 255.
     r = (r > 255) ? 255 : r;
@@ -98,15 +100,13 @@ void yuv422_to_rgb24_float(
     g = (g < 0) ? 0 : g;
     b = (b < 0) ? 0 : b;
 
-    rgb_buffer[rgb_ptr + 0] = r;
-    rgb_buffer[rgb_ptr + 1] = g;
-    rgb_buffer[rgb_ptr + 2] = b;
+    image_rgb32[rgb_ptr++] = (r << 16) | (g << 8) | b;
 
     // Run odd pixel through formula.
 
-    r = yuv_buffer[y_ptr + 1] + v1;
-    g = yuv_buffer[y_ptr + 1] + uv1;
-    b = yuv_buffer[y_ptr + 1] + u1;
+    r = image_yuv422[y_ptr + 1] + v1;
+    g = image_yuv422[y_ptr + 1] + uv1;
+    b = image_yuv422[y_ptr + 1] + u1;
 
     // Saturate pixels to a value between 0 and 255.
     r = (r > 255) ? 255 : r;
@@ -117,18 +117,15 @@ void yuv422_to_rgb24_float(
     g = (g < 0) ? 0 : g;
     b = (b < 0) ? 0 : b;
 
-    rgb_buffer[rgb_ptr + 3] = r;
-    rgb_buffer[rgb_ptr + 4] = g;
-    rgb_buffer[rgb_ptr + 5] = b;
+    image_rgb32[rgb_ptr++] = (r << 16) | (g << 8) | b;
 
-    rgb_ptr += 6;
     y_ptr += 2;
   }
 }
 
-void yuv422_to_rgb24_int(
-  uint8_t *rgb_buffer,
-  uint8_t *yuv_buffer,
+void yuv422_to_rgb32_int(
+  uint32_t *image_rgb32,
+  uint8_t *image_yuv422,
   int width,
   int height)
 {
@@ -142,7 +139,7 @@ void yuv422_to_rgb24_int(
 
   length = width * height;
 
-  u_buffer = yuv_buffer + length;
+  u_buffer = image_yuv422 + length;
   length = length / 2;
   v_buffer =u_buffer + length;
 
@@ -163,7 +160,7 @@ void yuv422_to_rgb24_int(
 
     // Run even pixel through formula.
 
-    y1 = yuv_buffer[y_ptr] << 12;
+    y1 = image_yuv422[y_ptr] << 12;
 
     r = (y1 + v1) >> 12;
     g = (y1 + uv1) >> 12;
@@ -178,13 +175,11 @@ void yuv422_to_rgb24_int(
     g = (g < 0) ? 0 : g;
     b = (b < 0) ? 0 : b;
 
-    rgb_buffer[rgb_ptr + 0] = r;
-    rgb_buffer[rgb_ptr + 1] = g;
-    rgb_buffer[rgb_ptr + 2] = b;
+    image_rgb32[rgb_ptr++] = (r << 16) | (g << 8) | b;
 
     // Run odd pixel through formula.
 
-    y1 = yuv_buffer[y_ptr + 1] << 12;
+    y1 = image_yuv422[y_ptr + 1] << 12;
 
     r = (y1 + v1) >> 12;
     g = (y1 + uv1) >> 12;
@@ -199,11 +194,8 @@ void yuv422_to_rgb24_int(
     g = (g < 0) ? 0 : g;
     b = (b < 0) ? 0 : b;
 
-    rgb_buffer[rgb_ptr + 3] = r;
-    rgb_buffer[rgb_ptr + 4] = g;
-    rgb_buffer[rgb_ptr + 5] = b;
+    image_rgb32[rgb_ptr++] = (r << 16) | (g << 8) | b;
 
-    rgb_ptr += 6;
     y_ptr += 2;
   }
 }
