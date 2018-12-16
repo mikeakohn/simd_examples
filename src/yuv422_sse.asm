@@ -53,11 +53,9 @@ yuv422_to_rgb32_float_sse:
   ;; rdx points to U buffer (y + length)
   mov rdx, rsi
   add rdx, rcx
-  ;; r8 points to V buffer (u + (length / 2))
-  mov eax, ecx
-  sar eax, 1
-  mov r8, rdx
-  add r8, rax
+  ;; r8 is length / 2
+  mov r8d, ecx
+  sar r8d, 1
 
   ;; Load constants
   pxor xmm0, xmm0        ; xmm0 = [ 0, 0, 0, 0 ]
@@ -95,16 +93,18 @@ yuv422_to_rgb32_float_sse_loop:
   punpcklbw xmm2, xmm0
   punpcklwd xmm2, xmm0
 
+  xor eax, eax
+
   ;; Load U0U1 into xmm3 [ U0, U0, U1, U1 ].
   mov ax, [rdx]
-  pinsrw xmm3, ax, 0
+  movd xmm3, eax
   punpcklbw xmm3, xmm0
   punpcklwd xmm3, xmm0
   pshufd xmm3, xmm3, 0x50
 
   ;; Load V0V1 into xmm4 [ V0, V0, V1, V1 ].
-  mov ax, [r8]
-  pinsrw xmm4, ax, 0
+  mov ax, [rdx+r8]
+  movd xmm4, eax
   punpcklbw xmm4, xmm0
   punpcklwd xmm4, xmm0
   pshufd xmm4, xmm4, 0x50
@@ -164,7 +164,6 @@ yuv422_to_rgb32_float_sse_loop:
   add rdi, 16
   add rsi, 4
   add rdx, 2
-  add r8, 2
   sub ecx, 4
   jnz yuv422_to_rgb32_float_sse_loop
   ret
@@ -182,11 +181,9 @@ yuv422_to_rgb32_int_sse:
   ;; rdx points to U buffer (y + length)
   mov rdx, rsi
   add rdx, rcx
-  ;; r8 points to V buffer (u + (length / 2))
-  mov eax, ecx
-  sar eax, 1
-  mov r8, rdx
-  add r8, rax
+  ;; r8 is length / 2
+  mov r8d, ecx
+  sar r8d, 1
 
   ;; Load constants
   pxor xmm0, xmm0        ; xmm0 = [ 0, 0, 0, 0 ]
@@ -224,16 +221,18 @@ yuv422_to_rgb32_int_sse_loop:
   punpcklbw xmm2, xmm0
   punpcklwd xmm2, xmm0
 
+  xor eax, eax
+
   ;; Load U0U1 into xmm3 [ U0, U0, U1, U1 ].
   mov ax, [rdx]
-  pinsrw xmm3, ax, 0
+  movd xmm3, eax
   punpcklbw xmm3, xmm0
   punpcklwd xmm3, xmm0
   pshufd xmm3, xmm3, 0x50
 
   ;; Load V0V1 into xmm4 [ V0, V0, V1, V1 ].
-  mov ax, [r8]
-  pinsrw xmm4, ax, 0
+  mov ax, [rdx+r8]
+  movd xmm4, eax
   punpcklbw xmm4, xmm0
   punpcklwd xmm4, xmm0
   pshufd xmm4, xmm4, 0x50
@@ -290,7 +289,6 @@ yuv422_to_rgb32_int_sse_loop:
   add rdi, 16
   add rsi, 4
   add rdx, 2
-  add r8, 2
   sub ecx, 4
   jnz yuv422_to_rgb32_int_sse_loop
   ret
