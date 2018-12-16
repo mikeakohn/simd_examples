@@ -159,8 +159,7 @@ yuv422_to_rgb32_float_sse_loop:
   por xmm4, xmm5
   por xmm4, xmm3
 
-  ;movups [rdi], xmm4
-  movntps [rdi], xmm4
+  movups [rdi], xmm4
 
   add rdi, 16
   add rsi, 4
@@ -286,8 +285,7 @@ yuv422_to_rgb32_int_sse_loop:
   por xmm4, xmm5
   por xmm4, xmm3
 
-  ;movups [rdi], xmm4
-  movntps [rdi], xmm4
+  movups [rdi], xmm4
 
   add rdi, 16
   add rsi, 4
